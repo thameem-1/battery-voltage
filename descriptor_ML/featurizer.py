@@ -26,4 +26,5 @@ for mid in tqdm(unique_ids, desc="Featurizing"):
     records.append(record)
 
 
-desc_df = pd.DataFrame(records) 
+desc_df = pd.DataFrame(records) # 132 features for each material id
+
