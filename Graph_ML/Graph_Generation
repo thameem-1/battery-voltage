@@ -15,7 +15,7 @@ class GaussianDistance:
     def expand(self, distances):
         return np.exp(-(distances[..., None] - self.filter)**2 / self.var**2)
 
-# Block 2: CGCNN Featurizer
+# CGCNN Featurizer
 def build_cgcnn_config(cif_folder, config_path="cgcnn_node_config.json"):
     atomic_numbers = set()
     for cif in glob.glob(f"{cif_folder}/**/*.cif", recursive=True):
@@ -49,7 +49,7 @@ def process_cif_cgcnn(file_path, atom_init, gdf, cutoff=8.0, max_nbr=12):
         edge_attr=torch.tensor(np.vstack(edge_attr), dtype=torch.float32)
     )
 
-# Block 3: Parallel Dataset & Split
+# Parallel Dataset & Split
 def make_graph(row, atom_init, gdf, cif_dir):
     try:
         chg = glob.glob(f"{cif_dir}/**/{row['id_charge']}.cif", recursive=True)
@@ -84,7 +84,7 @@ def generate_dual_cgcnn_graph_dataset_parallel(cif_dir, csv_path, atom_init_path
 
 
 
-# Block 6: Execution
+# Execution
 cif_dir = "MP_CIFs_Battery" # path to cif folder
 csv_path = "charge_discharge_pairs.xlsx" # path to excel
 atom_init_path = build_cgcnn_config(cif_dir)
