@@ -89,3 +89,8 @@ cif_dir = "MP_CIFs_Battery" # path to cif folder
 csv_path = "charge_discharge_pairs.xlsx" # path to excel
 atom_init_path = build_cgcnn_config(cif_dir)
 graphs, df_valid = generate_dual_cgcnn_graph_dataset_parallel(cif_dir, csv_path, atom_init_path)
+
+import joblib
+
+# Save both together in one file
+joblib.dump((graphs, df_valid), "dual_graph_dataset_.pkl")
