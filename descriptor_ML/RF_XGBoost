@@ -1,0 +1,49 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestRegressor
+from xgboost import XGBRegressor
+from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+
+descriptor_path = "magpie_descriptors.xlsx"
+cif_folder_path = "charge_discharge_pairs.xlsx"
+
+desc_df = pd.read_excel(descriptor_path)
+pair_df = pd.read_excel(cif_folder_path)
+pair_df = pair_df[(pair_df["average_voltage"] >= -2) & (pair_df["average_voltage"] <= 7)]
+
+desc_df = desc_df.dropna().drop_duplicates(subset=["material_id"])
+desc_df.set_index("material_id", inplace=True)
+desc_cols = [col for col in desc_df.columns if col != "material_id"]
+
+pair_df = pair_df.dropna(subset=["id_charge", "id_discharge", "average_voltage"])
+pair_df = pair_df.merge(desc_df.add_prefix("chg_"), left_on="id_charge", right_index=True, how="inner")
+pair_df = pair_df.merge(desc_df.add_prefix("dis_"), left_on="id_discharge", right_index=True, how="inner")
+
+X = pair_df[[f"chg_{col}" for col in desc_cols] + [f"dis_{col}" for col in desc_cols]].values
+y = pair_df["average_voltage"].values
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+pair_df = pair_df.dropna(subset=["working_ion"])
+stratify_labels = pair_df["working_ion"].astype(str).values
+
+X_train, X_test, y_train, y_test = train_test_split( X_scaled, y, test_size=0.1, random_state=42, stratify=stratify_labels )
+
+rf = RandomForestRegressor(n_estimators=200, max_depth=20, random_state=10, n_jobs=-1)
+rf.fit(X_train, y_train)
+rf_pred = rf.predict(X_test)
+
+print("Random Forest Results:")
+print(f"R²  = {r2_score(y_test, rf_pred):.4f}")
+print(f"MAE = {mean_absolute_error(y_test, rf_pred):.4f}")
+
+xgb = XGBRegressor(n_estimators=200, learning_rate=0.05, max_depth=10, random_state=10, n_jobs=-1)
+xgb.fit(X_train, y_train)
+xgb_pred = xgb.predict(X_test)
+
+print("\nXGBoost Results:")
+print(f"R²  = {r2_score(y_test, xgb_pred):.4f}")
+print(f"MAE = {mean_absolute_error(y_test, xgb_pred):.4f}")
