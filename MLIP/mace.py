@@ -12,4 +12,4 @@ calc = mace_mp(
 )
 atoms.calc = calc
 opt = LBFGS(FrechetCellFilter(atoms))
-opt.run(fmax=0.05, steps=500)
+opt.run(fmax=0.02, steps=500)
